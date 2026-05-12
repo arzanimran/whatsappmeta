@@ -1,4 +1,4 @@
-const whatsappService = require("../services/whatsappProvider");
+const getProvider = require("../services/whatsappProvider");
 
 async function bookAppointment(req, res) {
 
@@ -9,7 +9,17 @@ async function bookAppointment(req, res) {
       patientPhone
     } = req.body;
 
+    // validation added to ensure required fields are present
+    if (!patientName || !patientPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "patientName and patientPhone are required"
+      });
+    }
+
     console.log("BOOKING APPOINTMENT");
+
+    const whatsappService = getProvider();
 
     const messageResponse =
       await whatsappService.sendAppointmentMessage(

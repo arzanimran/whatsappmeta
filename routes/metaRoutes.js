@@ -1,3 +1,4 @@
+//Fake Meta signup/connect system.business wants to connect WhatsApp with your app
 const express = require("express");
 
 const router = express.Router();
