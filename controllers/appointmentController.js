@@ -6,34 +6,59 @@ async function bookAppointment(req, res) {
 
     const {
       patientName,
-      patientPhone
+      patientPhone,
+      doctorName,
+      appointmentDate,
+      hospitalName
     } = req.body;
 
-    // validation added to ensure required fields are present
-    if (!patientName || !patientPhone) {
+    if (
+      !patientName ||
+      !patientPhone ||
+      !doctorName ||
+      !appointmentDate ||
+      !hospitalName
+    ) {
+
       return res.status(400).json({
         success: false,
-        message: "patientName and patientPhone are required"
+        message: "All fields are required"
       });
     }
 
     console.log("BOOKING APPOINTMENT");
 
-    const whatsappService = getProvider();
+    // fake appointment object
+    const appointment = {
+      appointmentId: Date.now(),
+      patientName,
+      patientPhone,
+      doctorName,
+      appointmentDate,
+      hospitalName,
+      status: "BOOKED"
+    };
 
-    const messageResponse =
-      await whatsappService.sendAppointmentMessage(
+    // provider resolve
+    const provider = getProvider(
+      process.env.WHATSAPP_PROVIDER
+    );
+
+    // template auto send after booking
+    const templateResponse =
+      await provider.sendTemplateMessage({
+        patientName,
+        doctorName,
+        appointmentDate,
+        hospitalName,
         patientPhone,
-        `Hello ${patientName}, your appointment is booked successfully`
-      );
+        templateType: "confirmation"
+      });
 
     res.json({
       success: true,
-      appointment: {
-        patientName,
-        patientPhone
-      },
-      whatsapp: messageResponse
+      appointment,
+      whatsappNotification: templateResponse
     });
 
   } catch (error) {
