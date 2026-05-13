@@ -1,4 +1,4 @@
-const whatsappService = require("../services/whatsappProvider");
+const getProvider = require("../services/whatsappProvider");
 
 async function bookAppointment(req, res) {
 
@@ -6,24 +6,59 @@ async function bookAppointment(req, res) {
 
     const {
       patientName,
-      patientPhone
+      patientPhone,
+      doctorName,
+      appointmentDate,
+      hospitalName
     } = req.body;
+
+    if (
+      !patientName ||
+      !patientPhone ||
+      !doctorName ||
+      !appointmentDate ||
+      !hospitalName
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
 
     console.log("BOOKING APPOINTMENT");
 
-    const messageResponse =
-      await whatsappService.sendAppointmentMessage(
+    // fake appointment object
+    const appointment = {
+      appointmentId: Date.now(),
+      patientName,
+      patientPhone,
+      doctorName,
+      appointmentDate,
+      hospitalName,
+      status: "BOOKED"
+    };
+
+    // provider resolve
+    const provider = getProvider(
+      process.env.WHATSAPP_PROVIDER
+    );
+
+    // template auto send after booking
+    const templateResponse =
+      await provider.sendTemplateMessage({
+        patientName,
+        doctorName,
+        appointmentDate,
+        hospitalName,
         patientPhone,
-        `Hello ${patientName}, your appointment is booked successfully`
-      );
+        templateType: "confirmation"
+      });
 
     res.json({
       success: true,
-      appointment: {
-        patientName,
-        patientPhone
-      },
-      whatsapp: messageResponse
+      appointment,
+      whatsappNotification: templateResponse
     });
 
   } catch (error) {
