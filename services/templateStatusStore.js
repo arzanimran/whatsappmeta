@@ -1,27 +1,15 @@
-/*const templateLogs = [];
 
-function saveTemplateLog(data) {
-  templateLogs.push(data);
-}
 
-function getTemplateLogs() {
-  return templateLogs;
-}
+//This is like a message tracking system inside your backend SENT DELEVERED FAILED
 
-module.exports = {
-  saveTemplateLog,
-  getTemplateLogs
-};
-*/
+const templateLogs = new Map(); // map like a temp memory it is not permement it will delete after server restart
 
-const templateLogs = new Map();
-
-function saveTemplateLog(messageId, data) {
+function saveTemplateLog(messageId, data) {// save message in memory
 
   templateLogs.set(messageId, data);
 }
 
-function updateTemplateStatus(messageId, status) {
+function updateTemplateStatus(messageId, status) { // update status of message in memory
 
   const existing = templateLogs.get(messageId);
 
@@ -31,12 +19,12 @@ function updateTemplateStatus(messageId, status) {
 
   existing.status = status;
 
-  templateLogs.set(messageId, existing);
+  templateLogs.set(messageId, existing);//It replaces old value with new value
 
   return existing;
 }
 
-function getTemplateLog(messageId) {
+function getTemplateLog(messageId) {// get message log by messageId
 
   return templateLogs.get(messageId);
 }

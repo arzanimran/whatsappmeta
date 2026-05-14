@@ -120,7 +120,7 @@ const {
 } = require("./templateStatusStore");
 
 const generateMessageId =
-  require("./utils/generateMessageId");
+  require("../utils/generateMessageId");
 
 async function embeddedSignup(data) {
 

@@ -1,65 +1,15 @@
-const getProvider = require("../services/whatsappProvider");
+const appointmentService =
+  require("../services/appointmentService");
+
 
 async function bookAppointment(req, res) {
 
   try {
 
-    const {
-      patientName,
-      patientPhone,
-      doctorName,
-      appointmentDate,
-      hospitalName
-    } = req.body;
+    const result =
+      await appointmentService.bookAppointment(req.body);
 
-    if (
-      !patientName ||
-      !patientPhone ||
-      !doctorName ||
-      !appointmentDate ||
-      !hospitalName
-    ) {
-
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
-    }
-
-    console.log("BOOKING APPOINTMENT");
-
-    // fake appointment object
-    const appointment = {
-      appointmentId: Date.now(),
-      patientName,
-      patientPhone,
-      doctorName,
-      appointmentDate,
-      hospitalName,
-      status: "BOOKED"
-    };
-
-    // provider resolve
-    const provider = getProvider(
-      process.env.WHATSAPP_PROVIDER
-    );
-
-    // template auto send after booking
-    const templateResponse =
-      await provider.sendTemplateMessage({
-        patientName,
-        doctorName,
-        appointmentDate,
-        hospitalName,
-        patientPhone,
-        templateType: "confirmation"
-      });
-
-    res.json({
-      success: true,
-      appointment,
-      whatsappNotification: templateResponse
-    });
+    res.json(result);
 
   } catch (error) {
 
@@ -67,10 +17,51 @@ async function bookAppointment(req, res) {
       success: false,
       message: error.message
     });
+  }
+}
 
+
+async function cancelAppointment(req, res) {
+
+  try {
+
+    const result =
+      await appointmentService.cancelAppointment(req.body);
+
+    res.json(result);
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
+
+
+async function viewAppointments(req, res) {
+
+  try {
+
+    const result =
+      await appointmentService.viewAppointments(
+        req.params.phone
+      );
+
+    res.json(result);
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 }
 
 module.exports = {
-  bookAppointment
+  bookAppointment,
+  cancelAppointment,
+  viewAppointments
 };
