@@ -29,246 +29,13 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-
-
-/*
- 
-Connect WhatsApp service
--> Book appointment
--> Send WhatsApp notification
--> Provider can be Meta or MessageBird
--> Currently everything is fake
-
-
-Embedded Signup Success Test
-POST
-http://localhost:3000/meta/embedded-signup
-
-BODY
-{
-  "businessName": "ABC Clinic"
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 }
 
-SHOWN
-{"success":true,"provider":"META_WHATSAPP","businessId":"mock_business_123","phoneNumberId":"mock_phone_456","businessName":"ABC Clinic","onboardingSteps":[{"step":"business_signup","status":"completed"},{"step":"callback_received","status":"completed"},{"step":"token_generated","accessToken":"mock_access_token_abc"},{"step":"webhook_subscribed","webhook":"/meta/webhook"}],"status":"ONBOARDED"}
-
-
-
-Embedded Signup Failure Test
-POST
-http://localhost:3000/meta/embedded-signup
-
-BODY
-{
-  "businessName": "ABC Clinic",
-  "simulateFailure": true
-}
-
-SHOWN
-{
-  "success": false,
-  "step": "signup",
-  "message": "Meta signup failed"
-}
-
-
-
-Webhook Verification Test
-GET
-http://localhost:3000/meta/webhook?hub.mode=subscribe&hub.verify_token=my_verify_token&hub.challenge=12345
-
-SHOWN
-12345
-
-
-
-Webhook Verification Failure Test
-GET
-http://localhost:3000/meta/webhook?hub.mode=subscribe&hub.verify_token=wrong_token&hub.challenge=12345
-
-SHOWN
-Verification failed
-
-
-
-TEMPLATE SEND TEST
-POST
-http://localhost:3000/template/send
-BODY
-{
-  "patientName": "Arzan",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital",
-  "patientPhone": "9876543210",
-  "templateType": "confirmation"
-}
-
-SHOWN
-{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_1778654899535_xfqjeukl","status":"SENT"}
-
-WEBHOOK DELIVERY UPDATE TEST
-POST
-http://localhost:3000/meta/webhook
-
-{"success":true,"updated":{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_1778654899535_xfqjeukl","status":"DELIVERED"}}
-
-
-CHECK STATUS API
-GET
-http://localhost:3000/meta/message-status/PASTE_MESSAGE_ID_HERE
-
-{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_1778654899535_xfqjeukl","status":"DELIVERED"}
-
-
-
-
-Appointment Booking Success Test
-POST
-http://localhost:3000/appointment
-
-BODY
-{
-  "patientName": "Arzan",
-  "patientPhone": "9876543210",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital"
-}
-
-SHOWN
-{"success":true,"appointment":{"appointmentId":1778653563220,"patientName":"Arzan","patientPhone":"9876543210","doctorName":"Heeba","appointmentDate":"15 May 2026 10:00 AM","hospitalName":"City Hospital","status":"BOOKED"},"whatsappNotification":{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_1778654287627_z9y2hyj2","status":"SENT"}}
-
-
-
-Webhook POST Test
-POST
-http://localhost:3000/meta/webhook
-
-BODY
-{
-  "event": "message_received",
-  "from": "9876543210"
-}
-
-SHOWN
-{
-  "success": true,
-  "received": true,
-  "data": {
-    "event": "message_received",
-    "from": "9876543210"
-  }
-}
-
-
-
-
-FAILURE + FALLBACK TEST
-
-POST
-http://localhost:3000/template/send
-BODY
-{
-  "patientName": "Arzan",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital",
-  "patientPhone": "9876543210",
-  "templateType": "confirmation",
-  "simulateFailure": true
-}
-SHOWN
-{"success":true,"provider":"MESSAGE_BIRD","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"messagebird_1778655149054_qzs54wv3","status":"SENT","fallbackUsed":true}
-
-
-
-
-Provider Switch Test
-
-.env
-
-PORT=3000
-WHATSAPP_PROVIDER=MESSAGE_BIRD
-
-Restart server
-
-POST
-http://localhost:3000/appointment
-
-BODY
-{
-  "patientName": "Arzan",
-  "patientPhone": "9876543210"
-}
-
-SHOWN
-{
-  "success": true,
-  "appointment": {
-    "patientName": "Arzan",
-    "patientPhone": "9876543210"
-  },
-  "whatsapp": {
-    "success": true,
-    "provider": "MESSAGE_BIRD",
-    "to": "9876543210",
-    "message": "Hello Arzan, your appointment is booked successfully"
-  }
-}
-
-CONFIRMATION TEMPLATE
-POST
-http://localhost:3000/template/send
-
-{
-  "patientName": "Arzan",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital",
-  "patientPhone": "9876543210",
-  "templateType": "confirmation"
-}
-
-SHOWN
-{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Heeba is confirmed on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_template_001","status":"SENT"}
-
-REMINDER TEMPLATE
-POST
-http://localhost:3000/template/send
-{
-  "patientName": "Arzan",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital",
-  "patientPhone": "9876543210",
-  "templateType": "reminder"
-}
-SHOWN
-{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"reminder","message":"Reminder: Appointment with Dr.Heeba on 15 May 2026 10:00 AM at City Hospital","messageId":"meta_template_001","status":"SENT"}
-
-CANCELLATION TEMPLATE
-POST
-http://localhost:3000/template/send
-
-{
-  "patientName": "Arzan",
-  "doctorName": "Heeba",
-  "appointmentDate": "15 May 2026 10:00 AM",
-  "hospitalName": "City Hospital",
-  "patientPhone": "9876543210",
-  "templateType": "cancellation"
-}
-SHOWN
-{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"cancellation","message":"Appointment with Dr.Heeba on 15 May 2026 10:00 AM at City Hospital has been cancelled","messageId":"meta_template_001","status":"SENT"}
-
-
-
- */
+module.exports = app;
 
 
 
@@ -504,5 +271,79 @@ http://localhost:3000/bot/message
 SHOWN
 {"success":false,"message":"Doctor not found"}
 
+
+*/
+
+
+
+/*
+SEND TEMPLATE MESSAGE
+POST
+http://localhost:3000/template/send
+
+{
+  "patientName": "Arzan",
+  "doctorName": "Rajesh",
+  "appointmentDate": "Tomorrow 5 PM",
+  "hospitalName": "City Hospital",
+  "patientPhone": "9876543210",
+  "templateType": "confirmation"
+}
+
+SHOWN
+{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Rajesh is confirmed on Tomorrow 5 PM at City Hospital","messageId":"meta_1778931221462_7w7oon4y","status":"SENT","createdAt":"2026-05-16T11:33:41.462Z"}
+
+Reminder Template
+POST
+http://localhost:3000/template/send
+{
+  "patientName": "Arzan",
+  "doctorName": "Rajesh",
+  "appointmentDate": "Tomorrow 5 PM",
+  "hospitalName": "City Hospital",
+  "patientPhone": "9876543210",
+  "templateType": "reminder"
+}
+SHOWN
+{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"reminder","message":"Reminder: Appointment with Dr.Rajesh on Tomorrow 5 PM at City Hospital","messageId":"meta_1778931316047_4pv4pkp7","status":"SENT","createdAt":"2026-05-16T11:35:16.047Z"}
+
+Cancel Template
+POST
+http://localhost:3000/template/send
+{
+  "patientName": "Arzan",
+  "doctorName": "Rajesh",
+  "appointmentDate": "Tomorrow 5 PM",
+  "hospitalName": "City Hospital",
+  "patientPhone": "9876543210",
+  "templateType": "cancel"
+}
+SHOWN
+{"success":true,"provider":"META_WHATSAPP","to":"9876543210","templateType":"cancel","message":"Appointment with Dr.Rajesh on Tomorrow 5 PM at City Hospital has been cancelled","messageId":"meta_1778931376880_88x0fk20","status":"SENT","createdAt":"2026-05-16T11:36:16.880Z"}
+
+VALIDATION TEST
+POST
+http://localhost:3000/template/send
+{
+  "patientName": "Arzan",
+  "doctorName": "Rajesh"
+}
+
+shown
+{"success":false,"message":"All fields are required"}
+
+FAILURE SIMULATION TEST
+post
+{
+  "patientName": "Arzan",
+  "doctorName": "Rajesh",
+  "appointmentDate": "Tomorrow",
+  "hospitalName": "City Hospital",
+  "patientPhone": "9876543210",
+  "templateType": "confirmation",
+  "simulateFailure": true
+}
+shown
+{"success":true,"provider":"MESSAGE_BIRD","to":"9876543210","templateType":"confirmation","message":"Hello Arzan, your appointment with Dr.Rajesh is confirmed on Tomorrow at City Hospital","messageId":"messagebird_1778931554921_cluys8sg","status":"SENT","createdAt":"2026-05-16T11:39:14.921Z","fallbackUsed":true}
 
 */
