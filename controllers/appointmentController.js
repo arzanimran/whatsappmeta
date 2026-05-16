@@ -1,30 +1,15 @@
-const whatsappService = require("../services/whatsappProvider");
+const appointmentService =
+  require("../services/appointmentService");
+
 
 async function bookAppointment(req, res) {
 
   try {
 
-    const {
-      patientName,
-      patientPhone
-    } = req.body;
+    const result =
+      await appointmentService.bookAppointment(req.body);
 
-    console.log("BOOKING APPOINTMENT");
-
-    const messageResponse =
-      await whatsappService.sendAppointmentMessage(
-        patientPhone,
-        `Hello ${patientName}, your appointment is booked successfully`
-      );
-
-    res.json({
-      success: true,
-      appointment: {
-        patientName,
-        patientPhone
-      },
-      whatsapp: messageResponse
-    });
+    res.json(result);
 
   } catch (error) {
 
@@ -32,10 +17,51 @@ async function bookAppointment(req, res) {
       success: false,
       message: error.message
     });
+  }
+}
 
+
+async function cancelAppointment(req, res) {
+
+  try {
+
+    const result =
+      await appointmentService.cancelAppointment(req.body);
+
+    res.json(result);
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
+
+
+async function viewAppointments(req, res) {
+
+  try {
+
+    const result =
+      await appointmentService.viewAppointments(
+        req.params.phone
+      );
+
+    res.json(result);
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 }
 
 module.exports = {
-  bookAppointment
+  bookAppointment,
+  cancelAppointment,
+  viewAppointments
 };

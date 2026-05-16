@@ -1,14 +1,18 @@
-const provider = process.env.WHATSAPP_PROVIDER;
 
-const metaWhatsAppService = require("./metaWhatsAppService");
-const messageBirdService = require("./messageBirdService");
+//this function selects and returns the correct WhatsApp messaging service "Meta or MessageBird"!
+const metaWhatsAppService =
+  require("./metaWhatsAppService");
 
-function getProvider() {
-  if (provider === "META_WHATSAPP") {
+const messageBirdService =
+  require("./messageBirdService");
+
+function getProvider(providerName) {
+
+  if (providerName === "META_WHATSAPP") {
     return metaWhatsAppService;
   }
 
   return messageBirdService;
 }
 
-module.exports = getProvider();
+module.exports = getProvider;
